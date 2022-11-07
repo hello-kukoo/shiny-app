@@ -9,11 +9,25 @@ histogramUI <- function(id) {
   )
 }
 
-histogramServer <- function(id) {
+histogramBins <- function(id) {
+  ns <- NS(id)
+  numericInput(ns("bins"), "bins", 10, min = 1, step = 1)
+}
+
+histogramOutput <- function(id) {
+  ns <- NS(id)
+  plotOutput(ns("hist"))
+}
+
+histogramServer <- function(id, x, title = reactive("Histogram")) {
+  stopifnot(is.reactive(x))
+  stopifnot(is.reactive(title))
+
   moduleServer(id, function(input, output, session) {
-    data <- reactive(mtcars[[input$var]])
     output$hist <- renderPlot({
-      hist(data(), breaks = input$bins, main = input$var)
+      # req(is.numeric(x))
+      main <- paste0(title(), " [", input$bins, "]")
+      hist(x(), breaks = input$bins, main = main)
     }, res = 96)
   })
 }
