@@ -1,5 +1,7 @@
 library(shiny)
 library(zeallot)
+library(purrr)
+library(dplyr)
 
 datasetInput <- function(id, filter = NULL) {
   ns <- NS(id)
@@ -15,7 +17,11 @@ datasetInput <- function(id, filter = NULL) {
 
 datasetServer <- function(id) {
   moduleServer(id, function(input, output, session) {
-    reactive(get(input$dataset, "package:datasets"))
+    reactive(
+      get(input$dataset, "package:datasets") %>%
+        mutate_if(~is.character(.) && length(unique(.)) <= 25, as.factor) %>%
+        mutate_if(~is.numeric(.) && all(Filter(Negate(is.na), .) %% 1 == 0), as.integer)
+    )
   })
 }
 
@@ -65,10 +71,12 @@ datasetApp <- function(filter = is.numeric) {
 
   server <- function(input, output, session) {
     data <- datasetServer("data")
+
     # x <- selectVarServer("var", data, filter = filter)
     # use {zeallot} and %<-%
     # return to a list var seems better
     c(name, value) %<-% selectVarServer("var", data)
+
     # output$data <- renderTable(head(data()))
     output$summary <- renderPrint(str(data()))
     output$out <- renderPrint(value())

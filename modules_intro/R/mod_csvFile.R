@@ -14,6 +14,12 @@ csvFileUI <- function(id, label = "CSV file") {
   )
 }
 
+preprocess_df <- function(df) {
+  df %>%
+    mutate_if(~is.character(.) && length(unique(.)) <= 25, as.factor) %>%
+    mutate_if(~is.numeric(.) && all(Filter(Negate(is.na), .) %% 1 == 0), as.integer)
+}
+
 csvFileServer <- function(id, stringsAsFactors) {
   moduleServer(
     id,
@@ -28,10 +34,11 @@ csvFileServer <- function(id, stringsAsFactors) {
 
       # The user's data, parsed into a data frame
       dataframe <- reactive({
-        read.csv(userFile()$datapath,
+        df <- read.csv(userFile()$datapath,
                  header = input$heading,
                  quote = input$quote,
                  stringsAsFactors = stringsAsFactors)
+        preprocess_df(df)
       })
 
       # We can run observers in here if we want to
