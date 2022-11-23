@@ -86,6 +86,7 @@ datasetApp <- function(filter = is.numeric) {
   shinyApp(ui, server)
 }
 
+# shinyApp
 datasetApp()
 
 
